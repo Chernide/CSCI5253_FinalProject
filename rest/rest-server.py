@@ -1,12 +1,31 @@
 from flask import Flask, request, Response, jsonify
+from google.cloud import storage
 import jsonpickle, pickle
 import platform
 import io, os, sys
 import pika, redis
 import requests
+import psycopg2
+
+#######Database Variables#######
+host = os.getenv('POSTGRES_HOST')
+database = os.getenv('POSTGRES_DB')
+user = os.getenv('POSTGRES_USER')
+port = os.getenv('POSTGRES_PORT')
+password = os.getenv('POSTGRES_PASSWORD')
+################################
+
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '../Project_GCP_Credentials.json'
+storage_client = storage.Client()
+
 
 #init flask app
 app = Flask(__name__)
+
+logs_info_key = '{}.rest.info'.format(platform.node())
+def log_info(message, channel, key=logs_info_key):
+    channel.exchange_declare(exchange='logs', exchange_type='topic')
+    channel.basic_publish(exchange='logs', routing_key=key, body = message) 
 
 @app.route('/', methods=['GET'])
 def heartbeat():

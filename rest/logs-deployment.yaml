@@ -1,0 +1,8 @@
+apiVersion: v1 
+kind: Pod
+metadata:
+    name: logger
+spec:
+    containers:
+    - name: logger
+      image: chernide/finalproj:logs_version1  

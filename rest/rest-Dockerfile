@@ -1,0 +1,11 @@
+FROM python:3.9-alpine
+
+RUN pip3 install jsonpickle==0.9.6
+
+RUN pip3 install flask pika redis requests psycopg google-cloud-storage
+
+ADD rest-server.py /
+
+ADD ../Project_GCP_Credentials / 
+
+CMD ["python3", "./rest-server.py"]

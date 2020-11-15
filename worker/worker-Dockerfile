@@ -1,0 +1,9 @@
+FROM python:3.9-alpine
+
+RUN pip3 install pika jsonpickle requests psycopg google-cloud-storage
+
+ADD worker.py / 
+
+ADD ../Project_GCP_Credentials / 
+
+CMD ["python3", "worker.py"]
