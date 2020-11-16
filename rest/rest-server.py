@@ -22,6 +22,9 @@ storage_client = storage.Client()
 #init flask app
 app = Flask(__name__)
 
+acceptable_college_app_fields = ['Personal Info', 'First_Name', 'Last_Name', 'Email', 'Address', 'DOB', 'Education', 'School', 'GPA', 'Extracurriculars', 'Awards', 'Test Scores', 'SAT', 'ACT', 'College', 'Major', 'Essay', 'Picture']
+acceptable_job_app_fields = ['Personal Info', 'First_Name', 'Last_Name', 'Email', 'Address', 'DOB', 'Highest Achieved Education', 'Institution', 'Major', 'GPA', 'Work Experience (3 MAX)', 'Job 1', 'Job 2', 'Job 3', 'Company', 'Title', 'Duties', 'Length of Employment', 'Current Job', 'Job Info', 'Company', 'Position', 'Required Pay']
+
 logs_info_key = '{}.rest.info'.format(platform.node())
 def log_info(message, channel, key=logs_info_key):
     channel.exchange_declare(exchange='logs', exchange_type='topic')
@@ -106,13 +109,53 @@ def help_job():
 
 @app.route('/add/college', methods=['POST'])
 def add_college_application():
-    json_in = request.data
-    return None 
+    application = request.get_json()
+    if application is not None:
+        is_valid = True
+        for k in application.keys():
+            if k in acceptable_college_app_fields and k != 'Picture':
+                for k2 in application[k].keys():
+                    if k2 == 'Test Scores':
+                        for k3 in application[k][k2].keys():
+                            if k3 not in acceptable_college_app_fields:
+                                is_valid = False
+                    elif k2 not in acceptable_college_app_fields:
+                        is_valid = False
+            elif k != 'Picture':
+                is_valid = False
+        if is_valid:
+            None
+            ##SET UP CHANNEL AND SEND TO WORKER
+        return jsonify({'Application validity:': is_valid})
+    else:
+        return jsonify({'Error': 'Not in JSON format'})
 
 @app.route('/add/job', methods=['POST'])
 def add_job_application():
-    json_in = request.data
-    return None 
+    application = request.get_json()
+    if application is not None:
+        is_valid = True
+        for k in application.keys():
+            if k in acceptable_job_app_fields:
+                for k2 in application[k].keys():
+                    if k2 in acceptable_job_app_fields:
+                        if k2 == 'Job 1' or k2 == 'Job 2' or k2 == 'Job 3':
+                            for k3 in application[k][k2].keys():
+                                if k3 not in acceptable_job_app_fields:
+                                    is_valid = False
+                                    break
+                    else:
+                        is_valid = False
+                        break
+            else:
+                is_valid = False
+                break
+        if is_valid:
+            None
+            ##SET UP CHANNEL AND SEND TO WORKER
+        return jsonify({'Application validity:': is_valid})
+    else:
+        return jsonify({'Error': 'Not in JSON format'})
 
 @app.route('/query/college/<field>/<value>', methods=['GET'])
 @app.route('/query/college/<field>/<value>/<inequality>', methods=['GET'])
